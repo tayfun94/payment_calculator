@@ -10,6 +10,6 @@ spring:
   application:
     name: monthly_payment_calculator
   datasource:
-    password: paymentPassword123X!
-    url: jdbc:mariadb://tayfy.ro:3306/tayfyro_payment
-    username: tayfyro_payment
+    password: 
+    url: jdbc:mariadb://<domain>:3306/<db>
+    username: 
