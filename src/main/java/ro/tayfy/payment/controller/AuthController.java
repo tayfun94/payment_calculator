@@ -15,6 +15,8 @@ import ro.tayfy.payment.security.JwtUtil;
 import ro.tayfy.payment.service.UserService;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 @RestController
@@ -30,19 +32,19 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody UserRequestDTO authRequestDTO, HttpServletResponse response) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequestDTO.getUsername(), authRequestDTO.getPassword()));
         String token = jwtUtil.generateToken(authRequestDTO.getUsername());
-        Date expiryTime = jwtUtil.getTokenExpiration(token);
+        Instant expiryTime = jwtUtil.getTokenExpiration(token);
         generateCookies(response, token, expiryTime);
         return ResponseEntity.ok("Login successful");
     }
 
-    private static void generateCookies(HttpServletResponse response, String token, Date expiryTime) {
+    private static void generateCookies(HttpServletResponse response, String token, Instant expiryTime) {
         Cookie authTokenCookie = new Cookie("AuthToken", token);
         authTokenCookie.setHttpOnly(true);
         authTokenCookie.setSecure(false); //true
         authTokenCookie.setPath("/");
-        authTokenCookie.setMaxAge((int) Duration.ofDays(1).toSeconds());
+        authTokenCookie.setMaxAge((int) ChronoUnit.SECONDS.between(Instant.now(), expiryTime));
 
-        Cookie expiryTimeCookie = new Cookie("expiryTime", String.valueOf(expiryTime.getTime()));
+        Cookie expiryTimeCookie = new Cookie("expiryTime", String.valueOf(expiryTime));
         expiryTimeCookie.setHttpOnly(false);
         expiryTimeCookie.setSecure(false); //true
         expiryTimeCookie.setPath("/");

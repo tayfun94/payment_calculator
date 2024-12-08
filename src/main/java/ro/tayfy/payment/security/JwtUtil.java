@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Date;
 
 @Component
@@ -14,10 +15,18 @@ public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secretKey;
-    private long jwtExpirationInMs = 3_600_000;
+
+    private long jwtExpirationInMs = 3_600_000; // 1 hour in milliseconds
 
     public String generateToken(String username) {
-        return Jwts.builder().setSubject(username).setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs)).signWith(SignatureAlgorithm.HS512, secretKey).compact();
+        Instant now = Instant.now();
+        Instant expiration = now.plusMillis(jwtExpirationInMs);
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(expiration))
+                .signWith(SignatureAlgorithm.HS512, secretKey)
+                .compact();
     }
 
     public String extractUsername(String token) {
@@ -25,7 +34,11 @@ public class JwtUtil {
     }
 
     private Claims getJwtBody(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
@@ -34,11 +47,11 @@ public class JwtUtil {
     }
 
     private boolean isTokenExpired(String token) {
-        Date expiration = getJwtBody(token).getExpiration();
-        return expiration.before(new Date());
+        Instant expiration = getJwtBody(token).getExpiration().toInstant();
+        return expiration.isBefore(Instant.now());
     }
 
-    public Date getTokenExpiration(String token) {
-        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody().getExpiration();
+    public Instant getTokenExpiration(String token) {
+        return getJwtBody(token).getExpiration().toInstant();
     }
 }
