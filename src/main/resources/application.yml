@@ -1,0 +1,15 @@
+jwt:
+  secret: uHxkNmzRkLf8HQ2It2hhs9ojkm9JtKvmyf09NkF7iGfGSLqg43vIXT2v9D3hLlGJYKP6HNjO7F5BnGp2uXD6XA==
+logging:
+  level:
+    org:
+      springframework:
+        boot:
+          autoconfigure: ERROR
+spring:
+  application:
+    name: monthly_payment_calculator
+  datasource:
+    password: paymentPassword123X!
+    url: jdbc:mariadb://tayfy.ro:3306/tayfyro_payment
+    username: tayfyro_payment
